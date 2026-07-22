@@ -1,4 +1,4 @@
-# 📚 Infratech Admin Suite
+# 📚 institutional Admin Suite
 
 <div align="center">
 
@@ -15,7 +15,7 @@
 
 ## 📖 Overview
 
-**Infratech Admin Suite** is a professional student management dashboard designed to simplify institute administration. It provides an intuitive interface for managing students, attendance, fee collection, inventory, batch scheduling, and reporting—all from a single application.
+**institutional Admin Suite** is a professional student management dashboard designed to simplify institute administration. It provides an intuitive interface for managing students, attendance, fee collection, inventory, batch scheduling, and reporting—all from a single application.
 
 The system is built using **pure HTML, Tailwind CSS, and Vanilla JavaScript**, making it lightweight, portable, and easy to deploy without requiring any backend server.
 
