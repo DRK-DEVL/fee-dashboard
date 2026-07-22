@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infratech Admin Suite</title>
+    
+    <!-- Core Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- Typography & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace']
+                    },
+                    colors: {
+                        primary: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 900: '#0c4a6e' },
+                        slate: { 850: '#1e293b', 900: '#0f172a', 950: '#020617' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Animations */
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .modal-enter { opacity: 0; transform: scale(0.95); pointer-events: none; }
+        .modal-enter-active { opacity: 1; transform: scale(1); pointer-events: auto; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+        
+        /* Glass & Utility */
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.5); }
+        .dark .glass { background: rgba(15, 23, 42, 0.8); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        
+        .no-print { @media print { display: none !important; } }
+        .print-only { display: none; @media print { display: block !important; } }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-200 transition-colors duration-300 font-sans">
+
+    <!-- Sidebar -->
+    <aside class="w-[280px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col z-30 transition-colors duration-300 shadow-sm relative">
+        <!-- Logo Area -->
+        <div class="h-20 flex items-center gap-3 px-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                <span class="material-symbols-rounded text-[24px]">admin_panel_settings</span>
+            </div>
+            <div>
+                <h1 class="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">INFRATECH<br><span class="text-blue-600 font-bold">ADMIN SUITE</span></h1>
+            </div>
+        </div>
+
+        <!-- User Card -->
+        <div class="px-5 py-6">
+            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50 flex items-center gap-3 relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/0 to-blue-500/5 dark:to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <img id="user-avatar" src="" alt="Admin" class="w-10 h-10 rounded-full border-2 border-white dark:border-slate-600 shadow-sm object-cover bg-slate-200 relative z-10">
+                <div class="relative z-10 min-w-0">
+                    <p class="text-xs font-bold text-slate-900 dark:text-white truncate" id="user-name-display">Loading...</p>
+                    <div class="flex items-center gap-1.5 mt-0.5">
+                        <span id="cloud-status-dot" class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium uppercase truncate" id="user-rank-display">OFFLINE</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto px-4 space-y-1">
+            <p class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">Main Menu</p>
+            <button onclick="navTo('overview')" id="nav-overview" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all group">
+                <span class="material-symbols-rounded text-[20px] group-hover:scale-110 transition-transform">dashboard</span> Overview
+            </button>
+            <button onclick="navTo('students')" id="nav-students" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all group">
+                <span class="material-symbols-rounded text-[20px] group-hover:scale-110 transition-transform">groups</span> Students
+            </button>
+            <button onclick="navTo('attendance')" id="nav-attendance" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all group">
+                <span class="material-symbols-rounded text-[20px] group-hover:scale-110 transition-transform">calendar_month</span> Attendance
+            </button>
+            
+            <p class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 mt-6">Management</p>
+            <button onclick="navTo('batches')" id="nav-batches" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all group">
+                <span class="material-symbols-rounded text-[20px] group-hover:scale-110 transition-transform">schedule</span> Batches
+            </button>
+            <button onclick="navTo('materials')" id="nav-materials" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all group">
+                <span class="material-symbols-rounded text-[20px] group-hover:scale-110 transition-transform">inventory_2</span> Materials
+            </button>
+            <button onclick="navTo('passedout')" id="nav-passedout" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all group">
+                <span class="material-symbols-rounded text-[20px] group-hover:scale-110 transition-transform">school</span> Passed Out
+            </button>
+        </nav>
+
+        <!-- Footer Actions -->
+        <div class="p-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+            <button onclick="navTo('settings')" id="nav-settings" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                <span class="material-symbols-rounded text-[20px]">settings</span> Settings
+            </button>
+            <button onclick="toggleTheme()" class="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-xs font-bold text-slate-600 dark:text-slate-300">
+                <span class="flex items-center gap-2"><span class="material-symbols-rounded text-[18px]">contrast</span> Appearance</span>
+                <span id="theme-label" class="opacity-50">Auto</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-hidden relative bg-slate-50 dark:bg-slate-950">
+        
+        <!-- PAGE: OVERVIEW -->
+        <div id="page-overview" class="page-content absolute inset-0 overflow-y-auto p-6 lg:p-10 fade-in">
+            <!-- Header -->
+            <header class="flex justify-between items-end mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Dashboard</h2>
+                    <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Overview of fees, students, and inventory.</p>
+                </div>
+                <div class="flex gap-2">
+                     <button onclick="openModal('addStudentModal')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-blue-500/20 transition-transform active:scale-95 flex items-center gap-2">
+                        <span class="material-symbols-rounded">add</span> Add Student
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><span class="material-symbols-rounded text-[80px]">payments</span></div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Collection</p>
+                    <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white mt-2" id="kpi-collected">₹0</h3>
+                    <div class="mt-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">REVENUE</div>
+                </div>
+                <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><span class="material-symbols-rounded text-[80px]">warning</span></div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pending Dues</p>
+                    <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white mt-2" id="kpi-due">₹0</h3>
+                    <div class="mt-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400">OUTSTANDING</div>
+                </div>
+                <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+                     <div class="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><span class="material-symbols-rounded text-[80px]">groups</span></div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Students</p>
+                    <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white mt-2" id="kpi-students">0</h3>
+                     <div class="mt-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">ENROLLED</div>
+                </div>
+                <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><span class="material-symbols-rounded text-[80px]">inventory_2</span></div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Stock Needed</p>
+                    <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white mt-2" id="kpi-stock-need">0</h3>
+                    <div class="mt-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">DEMAND</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Chart Section -->
+                <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <h3 class="text-base font-bold text-slate-800 dark:text-white mb-6">Revenue Analysis</h3>
+                    <div class="h-[300px] w-full"><canvas id="revenueChart"></canvas></div>
+                </div>
+                
+                <!-- Quick Actions / Top Due -->
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+                    <h3 class="text-base font-bold text-slate-800 dark:text-white mb-4 flex justify-between items-center">
+                        Highest Dues
+                        <span class="text-[10px] bg-rose-50 text-rose-600 px-2 py-1 rounded-md uppercase font-bold dark:bg-rose-900/20 dark:text-rose-400">Action Required</span>
+                    </h3>
+                    <div id="top-defaulters-list" class="flex-1 overflow-y-auto space-y-3 pr-2">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: STUDENTS -->
+        <div id="page-students" class="page-content absolute inset-0 overflow-y-auto p-6 lg:p-10 hidden fade-in">
+             <header class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Student Directory</h2>
+                    <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Manage active students and payments.</p>
+                </div>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <div class="relative w-full md:w-64">
+                        <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
+                        <input type="text" id="searchInput" placeholder="Search students..." class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white shadow-sm">
+                    </div>
+                    <select id="filterStatus" onchange="renderStudentsTable()" class="px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 focus:outline-none shadow-sm cursor-pointer">
+                        <option value="ALL">All Status</option>
+                        <option value="PND">Pending</option>
+                        <option value="CLD">Cleared</option>
+                        <option value="DRP">Dropped</option>
+                    </select>
+                </div>
+            </header>
+
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 dark:bg-slate-950/50 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                            <tr>
+                                <th class="px-6 py-4">Name</th>
+                                <th class="px-6 py-4">Batch</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4 text-right">Paid</th>
+                                <th class="px-6 py-4 text-right">Due</th>
+                                <th class="px-6 py-4 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody" class="divide-y divide-slate-100 dark:divide-slate-800 text-sm text-slate-700 dark:text-slate-300">
+                            <!-- JS Populated -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="studentsEmpty" class="hidden py-12 text-center text-slate-400">
+                    <span class="material-symbols-rounded text-4xl mb-2 opacity-50">search_off</span>
+                    <p>No students found matching your criteria.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: ATTENDANCE -->
+        <div id="page-attendance" class="page-content absolute inset-0 overflow-y-auto p-6 lg:p-10 hidden fade-in">
+             <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Attendance Register</h2>
+                    <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Mark daily attendance. Saturdays are holidays.</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <input type="date" id="attendanceDate" class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm font-bold dark:text-white shadow-sm" onchange="loadAttendanceForDate()">
+                </div>
+            </header>
+
+            <div id="saturday-lock" class="hidden bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-8 text-center mb-8">
+                <div class="inline-flex p-3 bg-indigo-100 dark:bg-indigo-900/50 rounded-full text-indigo-600 dark:text-indigo-400 mb-4">
+                    <span class="material-symbols-rounded text-3xl">weekend</span>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white">It's Saturday!</h3>
+                <p class="text-slate-500 dark:text-slate-400 mt-2">Attendance is closed for holidays.</p>
+            </div>
+
+            <div id="attendance-container" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-200px)]">
+                 <div class="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/30 flex justify-between items-center">
+                    <p class="text-xs font-bold text-slate-500 uppercase">Active Students List</p>
+                    <div class="text-xs text-slate-400" id="attendance-stats">0 Present • 0 Absent</div>
+                 </div>
+                 <div class="flex-1 overflow-y-auto p-0">
+                     <table class="w-full text-left">
+                        <thead class="sticky top-0 bg-white dark:bg-slate-900 z-10 shadow-sm text-xs font-bold text-slate-500 uppercase">
+                            <tr>
+                                <th class="px-6 py-3 border-b dark:border-slate-800">Student Name</th>
+                                <th class="px-6 py-3 border-b dark:border-slate-800">Batch</th>
+                                <th class="px-6 py-3 border-b dark:border-slate-800 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTableBody" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+                     </table>
+                 </div>
+                 <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/30 flex justify-end">
+                     <button onclick="saveAttendance()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-sm transition-colors shadow-lg shadow-blue-500/20">Save Attendance</button>
+                 </div>
+            </div>
+        </div>
+
+        <!-- PAGE: MATERIALS & INVENTORY -->
+        <div id="page-materials" class="page-content absolute inset-0 overflow-y-auto p-6 lg:p-10 hidden fade-in">
+            <header class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Inventory & Materials</h2>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Manage toolkit stock and distribution.</p>
+            </header>
+
+            <!-- Inventory Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+                <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <p class="text-xs font-bold text-slate-400 uppercase">Current Stock</p>
+                    <h3 class="text-3xl font-extrabold text-slate-800 dark:text-white mt-2" id="inv-stock">0</h3>
+                    <p class="text-[10px] text-slate-400 mt-1">Available to assign</p>
+                </div>
+                <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                     <p class="text-xs font-bold text-slate-400 uppercase">Distributed</p>
+                    <h3 class="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mt-2" id="inv-dist">0</h3>
+                    <p class="text-[10px] text-slate-400 mt-1">To eligible students</p>
+                </div>
+                 <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                     <p class="text-xs font-bold text-slate-400 uppercase">Requirement</p>
+                    <h3 class="text-3xl font-extrabold text-amber-600 dark:text-amber-400 mt-2" id="inv-need">0</h3>
+                    <p class="text-[10px] text-slate-400 mt-1">Eligible but no kit</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Stock Management -->
+                <div class="lg:col-span-1 space-y-6">
+                     <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+                        <h3 class="font-bold text-slate-800 dark:text-white mb-4">Add Stock Batch</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase">Date Arrived</label>
+                                <input type="date" id="stockDate" class="w-full mt-1 px-3 py-2 border rounded-lg text-sm bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase">Quantity (Kits)</label>
+                                <input type="number" id="stockQty" class="w-full mt-1 px-3 py-2 border rounded-lg text-sm bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase">Notes</label>
+                                <input type="text" id="stockNote" class="w-full mt-1 px-3 py-2 border rounded-lg text-sm bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Optional">
+                            </div>
+                            <button onclick="addStockBatch()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-sm shadow-sm transition-colors mt-2">Add to Inventory</button>
+                        </div>
+                     </div>
+
+                     <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+                        <h3 class="font-bold text-slate-800 dark:text-white mb-4">Stock History</h3>
+                        <div class="space-y-3 max-h-64 overflow-y-auto" id="stockHistoryList">
+                            <!-- JS Populated -->
+                        </div>
+                     </div>
+                </div>
+
+                <!-- Distribution List -->
+                <div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col h-[600px]">
+                    <div class="flex border-b border-slate-100 dark:border-slate-800">
+                        <button onclick="renderMaterialsList('PENDING')" id="tab-mat-pending" class="flex-1 py-4 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400">Pending Eligibility</button>
+                        <button onclick="renderMaterialsList('ELIGIBLE')" id="tab-mat-eligible" class="flex-1 py-4 text-sm font-bold border-b-2 border-blue-600 text-blue-600">Needs Kit</button>
+                        <button onclick="renderMaterialsList('RECEIVED')" id="tab-mat-received" class="flex-1 py-4 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400">Received</button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 dark:bg-slate-950/50 text-slate-500 text-xs font-bold uppercase sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-3">Student</th>
+                                    <th class="px-6 py-3 text-right">Fee Paid %</th>
+                                    <th class="px-6 py-3 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="materialTableBody" class="divide-y divide-slate-100 dark:divide-slate-800 text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: BATCHES -->
+        <div id="page-batches" class="page-content absolute inset-0 overflow-y-auto p-6 lg:p-10 hidden fade-in">
+             <header class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Batch Management</h2>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Student distribution by time slots.</p>
+            </header>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div onclick="filterBatchView('9-11')" class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-all group">
+                    <p class="text-xs font-bold text-slate-400 uppercase">09:00 AM - 11:00 AM</p>
+                    <h3 class="text-3xl font-extrabold text-slate-900 dark:text-white mt-2 group-hover:text-blue-600 transition-colors" id="cnt-9-11">0</h3>
+                    <p class="text-sm font-medium text-slate-500">Morning Batch</p>
+                </div>
+                <div onclick="filterBatchView('11-1')" class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-all group">
+                    <p class="text-xs font-bold text-slate-400 uppercase">11:00 AM - 01:00 PM</p>
+                    <h3 class="text-3xl font-extrabold text-slate-900 dark:text-white mt-2 group-hover:text-blue-600 transition-colors" id="cnt-11-1">0</h3>
+                    <p class="text-sm font-medium text-slate-500">Noon Batch</p>
+                </div>
+                <div onclick="filterBatchView('2-4')" class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-all group">
+                    <p class="text-xs font-bold text-slate-400 uppercase">02:00 PM - 04:00 PM</p>
+                    <h3 class="text-3xl font-extrabold text-slate-900 dark:text-white mt-2 group-hover:text-blue-600 transition-colors" id="cnt-2-4">0</h3>
+                    <p class="text-sm font-medium text-slate-500">Afternoon Batch</p>
+                </div>
+                <div onclick="filterBatchView('SUNDAY')" class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-all group">
+                    <p class="text-xs font-bold text-slate-400 uppercase">SUNDAY BATCH</p>
+                    <h3 class="text-3xl font-extrabold text-slate-900 dark:text-white mt-2 group-hover:text-blue-600 transition-colors" id="cnt-sunday">0</h3>
+                    <p class="text-sm font-medium text-slate-500">Weekend Special</p>
+                </div>
+            </div>
+            
+            <div id="batch-list-container" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg text-slate-900 dark:text-white" id="batch-list-title">Batch Details</h3>
+                    <button onclick="document.getElementById('batch-list-container').classList.add('hidden')" class="text-slate-400 hover:text-slate-600"><span class="material-symbols-rounded">close</span></button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left"><tbody id="batchTableBody" class="divide-y divide-slate-100 dark:divide-slate-800 text-sm"></tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: PASSED OUT -->
+        <div id="page-passedout" class="page-content absolute inset-0 overflow-y-auto p-6 lg:p-10 hidden fade-in">
+             <header class="mb-6"><h2 class="text-2xl font-bold text-slate-900 dark:text-white">Alumni & Passed Out</h2></header>
+             <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 dark:bg-slate-950/50 text-slate-500 text-xs font-bold uppercase"><tr><th class="px-6 py-4">Name</th><th class="px-6 py-4">Status</th><th class="px-6 py-4 text-center">Action</th></tr></thead>
+                    <tbody id="passedOutBody" class="divide-y divide-slate-100 dark:divide-slate-800 text-sm"></tbody>
+                </table>
+             </div>
+        </div>
+
+        <!-- PAGE: SETTINGS -->
+        <div id="page-settings" class="page-content absolute inset-0 overflow-y-auto p-6 lg:p-10 hidden fade-in">
+            <header class="mb-8"><h2 class="text-2xl font-bold text-slate-900 dark:text-white">System Settings</h2></header>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                    <!-- Profile Config -->
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <h3 class="font-bold text-lg mb-4 dark:text-white">Admin Profile</h3>
+                        <div class="space-y-4">
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Display Name</label><input type="text" id="confName" class="w-full px-4 py-2 border rounded-lg bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Rank / Title</label><input type="text" id="confRank" class="w-full px-4 py-2 border rounded-lg bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                            <button onclick="saveConfig()" class="px-4 py-2 bg-slate-900 text-white dark:bg-slate-700 rounded-lg text-sm font-bold">Save Changes</button>
+                        </div>
+                    </div>
+                    <!-- Data Management -->
+                     <div class="bg-rose-50 dark:bg-rose-950/20 p-6 rounded-2xl border border-rose-100 dark:border-rose-900/30 shadow-sm">
+                        <h3 class="font-bold text-lg text-rose-700 dark:text-rose-400 mb-2">Danger Zone</h3>
+                        <p class="text-sm text-rose-600/70 mb-4">Resetting will delete all local data.</p>
+                        <button onclick="factoryReset()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-bold flex items-center gap-2"><span class="material-symbols-rounded text-[18px]">delete_forever</span> Factory Reset</button>
+                    </div>
+                </div>
+
+                <!-- Cloud Config -->
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col h-full">
+                    <h3 class="font-bold text-lg mb-4 dark:text-white flex items-center gap-2"><span class="material-symbols-rounded text-blue-600">cloud_sync</span> Google Drive Sync</h3>
+                    <div class="flex gap-2 mb-4 border-b dark:border-slate-700">
+                        <button onclick="switchSettingTab('url')" id="st-btn-url" class="pb-2 text-sm font-bold border-b-2 border-blue-600 text-blue-600">Configuration</button>
+                        <button onclick="switchSettingTab('code')" id="st-btn-code" class="pb-2 text-sm font-bold border-b-2 border-transparent text-slate-400">Script Code</button>
+                    </div>
+                    
+                    <div id="st-content-url">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Web App URL</label>
+                        <input type="text" id="cloudUrl" placeholder="https://script.google.com/..." class="w-full px-4 py-3 border rounded-lg font-mono text-xs mb-4 bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                        <div class="flex justify-end gap-2">
+                            <button onclick="syncData('pull')" class="px-4 py-2 bg-white border border-slate-300 dark:bg-slate-800 dark:border-slate-700 rounded-lg text-sm font-bold dark:text-white">Pull Data</button>
+                            <button onclick="syncData('push')" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold">Push Data</button>
+                        </div>
+                    </div>
+
+                    <div id="st-content-code" class="hidden flex-1 flex flex-col">
+                        <p class="text-xs text-slate-500 mb-2">Copy this code into your Google Apps Script editor.</p>
+                        <div class="relative flex-1">
+                            <textarea id="scriptCode" class="w-full h-64 p-3 bg-slate-900 text-slate-300 font-mono text-[10px] rounded-lg resize-none focus:outline-none" readonly>
+function doPost(e) {
+  try {
+    var payload = JSON.parse(e.postData.contents);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    // 1. Handle Student Data
+    var sheetData = ss.getSheetByName("Data");
+    if (!sheetData) sheetData = ss.insertSheet("Data");
+    sheetData.clear();
+    
+    var headers = ["ID", "Name", "Join Date", "Status", "Total Fee", "Paid", "Due", "Batch", "Mat Status", "Exams", "History"];
+    sheetData.appendRow(headers);
+    
+    if (payload.students && payload.students.length > 0) {
+      var rows = payload.students.map(function(s) {
+        return [
+          s.id, s.name, s.join, s.status, s.total, s.paid, s.due, s.batch, s.material_status,
+          JSON.stringify(s.exams || {}), JSON.stringify(s.history || {})
+        ];
+      });
+      if(rows.length > 0) sheetData.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
+    }
+
+    // 2. Handle Attendance Data
+    var sheetAtt = ss.getSheetByName("Attendance");
+    if (!sheetAtt) sheetAtt = ss.insertSheet("Attendance");
+    sheetAtt.clear();
+    
+    var attHeaders = ["Date", "Records (JSON)"];
+    sheetAtt.appendRow(attHeaders);
+    
+    if (payload.attendance) {
+       var attRows = [];
+       for (var date in payload.attendance) {
+         attRows.push([date, JSON.stringify(payload.attendance[date])]);
+       }
+       if(attRows.length > 0) sheetAtt.getRange(2, 1, attRows.length, 2).setValues(attRows);
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({status: "success"})).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()})).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheetData = ss.getSheetByName("Data");
+  var sheetAtt = ss.getSheetByName("Attendance");
+  
+  var students = [];
+  var attendance = {};
+  
+  if (sheetData && sheetData.getLastRow() > 1) {
+    var data = sheetData.getDataRange().getValues();
+    // Skip header
+    for (var i = 1; i < data.length; i++) {
+      var r = data[i];
+      students.push({
+        id: r[0], name: r[1], join: r[2], status: r[3], total: Number(r[4]), paid: Number(r[5]), due: Number(r[6]),
+        batch: r[7], material_status: r[8], exams: JSON.parse(r[9] || "{}"), history: JSON.parse(r[10] || "{}")
+      });
+    }
+  }
+
+  if (sheetAtt && sheetAtt.getLastRow() > 1) {
+    var attData = sheetAtt.getDataRange().getValues();
+    for (var j = 1; j < attData.length; j++) {
+       attendance[attData[j][0]] = JSON.parse(attData[j][1]);
+    }
+  }
+  
+  return ContentService.createTextOutput(JSON.stringify({ students: students, attendance: attendance })).setMimeType(ContentService.MimeType.JSON);
+}
+                            </textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODALS -->
+    
+    <!-- Add Student Modal -->
+    <div id="addStudentModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-enter hidden transition-opacity duration-200">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeModal('addStudentModal')"></div>
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md relative z-10 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                <h3 class="font-bold text-lg dark:text-white">New Student</h3>
+                <button onclick="closeModal('addStudentModal')" class="text-slate-400 hover:text-slate-600"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="text" id="newStName" placeholder="Full Name" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl dark:text-white focus:ring-2 focus:ring-blue-500">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="date" id="newStDate" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl dark:text-white">
+                    <input type="number" id="newStFee" placeholder="Total Fee" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl dark:text-white">
+                </div>
+                <select id="newStBatch" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl dark:text-white">
+                    <option value="9-11">09:00 AM - 11:00 AM</option>
+                    <option value="11-1">11:00 AM - 01:00 PM</option>
+                    <option value="2-4">02:00 PM - 04:00 PM</option>
+                    <option value="SUNDAY">Sunday Batch</option>
+                </select>
+            </div>
+            <div class="p-4 bg-slate-50 dark:bg-slate-950/50 flex justify-end gap-2">
+                <button onclick="closeModal('addStudentModal')" class="px-4 py-2 text-slate-500 font-bold hover:bg-slate-200 rounded-lg">Cancel</button>
+                <button onclick="addNewStudent()" class="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg shadow-lg shadow-blue-500/30 hover:bg-blue-700">Add Student</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Details Modal -->
+    <div id="detailsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-enter hidden transition-opacity duration-200">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeModal('detailsModal')"></div>
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl relative z-10 overflow-hidden flex flex-col max-h-[90vh]">
+            
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start bg-slate-50 dark:bg-slate-950/50">
+                <div class="flex items-center gap-4">
+                    <img id="detAvatar" src="" class="w-16 h-16 rounded-full border-2 border-white shadow bg-slate-200">
+                    <div>
+                        <h2 id="detName" class="text-xl font-extrabold text-slate-900 dark:text-white">Student Name</h2>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span id="detBatch" class="px-2 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase">BATCH</span>
+                            <span id="detId" class="text-xs text-slate-400 font-mono">ID: 123</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="downloadStudentPDF()" class="p-2 text-slate-500 hover:bg-slate-200 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold"><span class="material-symbols-rounded text-[18px]">picture_as_pdf</span> PDF</button>
+                    <button onclick="deleteStudent()" class="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"><span class="material-symbols-rounded text-[20px]">delete</span></button>
+                    <button onclick="closeModal('detailsModal')" class="p-2 text-slate-400 hover:text-slate-600"><span class="material-symbols-rounded text-[24px]">close</span></button>
+                </div>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="flex-1 overflow-y-auto p-6 space-y-6 bg-white dark:bg-slate-900">
+                
+                <!-- Status & Kit Row -->
+                <div class="flex flex-wrap gap-4 items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <div class="flex gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase">Status</label>
+                            <select id="detStatus" onchange="updateStudentMeta()" class="bg-transparent font-bold text-sm text-slate-800 dark:text-white outline-none border-b border-slate-300 dark:border-slate-600 pb-0.5">
+                                <option value="PND">Pending</option>
+                                <option value="CLD">Cleared</option>
+                                <option value="DRP">Dropped</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase">Batch</label>
+                            <select id="detBatchSelect" onchange="updateStudentMeta()" class="bg-transparent font-bold text-sm text-slate-800 dark:text-white outline-none border-b border-slate-300 dark:border-slate-600 pb-0.5">
+                                <option value="9-11">9-11 AM</option>
+                                <option value="11-1">11-1 PM</option>
+                                <option value="2-4">2-4 PM</option>
+                                <option value="SUNDAY">Sunday</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="kit-status-badge" class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-200 text-slate-600">Kit Pending</div>
+                </div>
+
+                <!-- Financials -->
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl text-center border border-blue-100 dark:border-blue-900/30">
+                        <p class="text-[10px] font-bold text-blue-400 uppercase">Total Fee</p>
+                        <p id="detTotal" class="text-lg font-extrabold text-blue-700 dark:text-blue-300">₹0</p>
+                    </div>
+                    <div class="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl text-center border border-emerald-100 dark:border-emerald-900/30">
+                        <p class="text-[10px] font-bold text-emerald-400 uppercase">Paid</p>
+                        <p id="detPaid" class="text-lg font-extrabold text-emerald-700 dark:text-emerald-300">₹0</p>
+                    </div>
+                    <div class="p-4 bg-rose-50 dark:bg-rose-900/10 rounded-xl text-center border border-rose-100 dark:border-rose-900/30">
+                        <p class="text-[10px] font-bold text-rose-400 uppercase">Due</p>
+                        <p id="detDue" class="text-lg font-extrabold text-rose-700 dark:text-rose-300">₹0</p>
+                    </div>
+                </div>
+
+                <!-- Add Payment -->
+                <div class="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row gap-3 items-end">
+                    <div class="flex-1 w-full">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase">Month</label>
+                        <input type="month" id="payMonth" class="w-full px-3 py-2 text-sm border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white">
+                    </div>
+                    <div class="flex-1 w-full">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase">Amount (₹)</label>
+                        <input type="number" id="payAmount" class="w-full px-3 py-2 text-sm border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white">
+                    </div>
+                    <button onclick="addPayment()" class="w-full sm:w-auto px-6 py-2 bg-slate-900 hover:bg-black dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold rounded-lg text-sm">Add</button>
+                </div>
+
+                <!-- History -->
+                <div class="space-y-2">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wide">Payment History</h4>
+                    <div id="paymentHistoryList" class="space-y-2"></div>
+                </div>
+
+                 <!-- Exam Status -->
+                <div class="space-y-2 pt-2 border-t dark:border-slate-800">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wide">Board Status</h4>
+                    <div id="examStatusGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+                </div>
+
+                <!-- Attendance Calendar Preview -->
+                <div class="space-y-2 pt-2 border-t dark:border-slate-800">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wide">Attendance Overview</h4>
+                    <div class="flex flex-wrap gap-1" id="detAttendanceCal"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden PDF Template -->
+    <div id="pdf-template" class="hidden fixed top-0 left-0 w-[800px] bg-white p-12 text-slate-800 z-[-1]">
+        <div class="text-center border-b-2 border-slate-800 pb-6 mb-8">
+            <h1 class="text-3xl font-bold uppercase tracking-widest text-slate-900">Infratech Institute</h1>
+            <p class="text-sm text-slate-500 font-medium mt-1">Mobile Technician Course • Student Profile Report</p>
+        </div>
+        <div class="flex justify-between items-start mb-10">
+            <div>
+                <p class="text-xs text-slate-400 uppercase font-bold">Student Name</p>
+                <h2 id="pdfName" class="text-2xl font-bold text-slate-900">Name</h2>
+            </div>
+            <div class="text-right">
+                <p class="text-xs text-slate-400 uppercase font-bold">Batch Time</p>
+                <h2 id="pdfBatch" class="text-xl font-bold text-slate-900">Batch</h2>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-3 gap-6 mb-10">
+            <div class="p-4 bg-slate-50 border border-slate-200">
+                <p class="text-xs font-bold text-slate-500 uppercase">Total Fee</p>
+                <p id="pdfTotal" class="text-xl font-bold">₹0</p>
+            </div>
+            <div class="p-4 bg-emerald-50 border border-emerald-100">
+                <p class="text-xs font-bold text-emerald-700 uppercase">Amount Paid</p>
+                <p id="pdfPaid" class="text-xl font-bold text-emerald-800">₹0</p>
+            </div>
+            <div class="p-4 bg-rose-50 border border-rose-100">
+                <p class="text-xs font-bold text-rose-700 uppercase">Balance Due</p>
+                <p id="pdfDue" class="text-xl font-bold text-rose-800">₹0</p>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <h3 class="text-sm font-bold uppercase border-b border-slate-200 pb-2 mb-4">Payment History</h3>
+            <table class="w-full text-sm text-left">
+                <thead><tr class="text-slate-500"><th class="pb-2">Month</th><th class="pb-2 text-right">Amount</th></tr></thead>
+                <tbody id="pdfHistoryBody"></tbody>
+            </table>
+        </div>
+
+        <div class="mt-12 pt-6 border-t border-slate-200 flex justify-between text-xs text-slate-400">
+            <p>Generated by Infratech Admin Suite</p>
+            <p id="pdfDate">Date</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // --- State ---
+        let students = [];
+        let inventory = { batches: [], history: [] }; 
+        let attendance = {}; // Format: { "YYYY-MM-DD": { "studentID": "P/A/L" } }
+        let config = { name: "Admin", rank: "Mobile Tech Lead", cloudUrl: "", darkMode: false };
+        let currentStudentId = null;
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLocalData();
+            applyTheme();
+            updateUserDisplay();
+            initChart();
+            
+            // Set default date inputs
+            document.getElementById('newStDate').valueAsDate = new Date();
+            document.getElementById('stockDate').valueAsDate = new Date();
+            document.getElementById('attendanceDate').valueAsDate = new Date();
+            
+            navTo('overview');
+        });
+
+        // --- Navigation ---
+        function navTo(pageId) {
+            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+            document.getElementById('page-' + pageId).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(b => {
+                b.classList.remove('bg-blue-50', 'text-blue-600', 'dark:bg-blue-900/20', 'dark:text-blue-400');
+                b.classList.add('text-slate-600', 'dark:text-slate-400');
+            });
+            const btn = document.getElementById('nav-' + pageId);
+            if(btn) {
+                btn.classList.add('bg-blue-50', 'text-blue-600', 'dark:bg-blue-900/20', 'dark:text-blue-400');
+                btn.classList.remove('text-slate-600', 'dark:text-slate-400');
+            }
+
+            if(pageId === 'overview') updateOverview();
+            if(pageId === 'students') renderStudentsTable();
+            if(pageId === 'attendance') loadAttendanceForDate();
+            if(pageId === 'materials') updateMaterialsView();
+            if(pageId === 'batches') updateBatchesView();
+            if(pageId === 'passedout') updatePassedOutView();
+        }
+
+        // --- Data Layer ---
+        function loadLocalData() {
+            const sData = localStorage.getItem('infratech_students');
+            const iData = localStorage.getItem('infratech_inventory');
+            const aData = localStorage.getItem('infratech_attendance');
+            const cData = localStorage.getItem('infratech_config');
+            
+            if(sData) students = JSON.parse(sData);
+            if(iData) inventory = JSON.parse(iData);
+            if(aData) attendance = JSON.parse(aData);
+            if(cData) config = JSON.parse(cData);
+
+            document.getElementById('confName').value = config.name;
+            document.getElementById('confRank').value = config.rank;
+            document.getElementById('cloudUrl').value = config.cloudUrl;
+        }
+
+        function saveData() {
+            localStorage.setItem('infratech_students', JSON.stringify(students));
+            localStorage.setItem('infratech_inventory', JSON.stringify(inventory));
+            localStorage.setItem('infratech_attendance', JSON.stringify(attendance));
+            localStorage.setItem('infratech_config', JSON.stringify(config));
+            updateOverview(); // Refresh UI
+            
+            // Auto Sync (Silent)
+            if(config.cloudUrl) syncData('push', true);
+        }
+
+        // --- Logic: Students ---
+        function addNewStudent() {
+            const name = document.getElementById('newStName').value;
+            const total = Number(document.getElementById('newStFee').value);
+            if(!name || !total) return alert("Name and Fee required");
+            
+            const newS = {
+                id: 'S' + Date.now(),
+                name: name,
+                join: document.getElementById('newStDate').value,
+                total: total,
+                paid: 0,
+                due: total,
+                batch: document.getElementById('newStBatch').value,
+                status: 'PND',
+                material_status: 'PENDING',
+                exams: { rut_reg: 'PENDING', rut_exam: 'PENDING', sted_reg: 'PENDING', sted_exam: 'PENDING' },
+                history: {}
+            };
+            students.unshift(newS);
+            saveData();
+            closeModal('addStudentModal');
+            navTo('students');
+        }
+
+        function renderStudentsTable() {
+            const tbody = document.getElementById('studentsTableBody');
+            tbody.innerHTML = '';
+            const filter = document.getElementById('filterStatus').value;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+
+            const filtered = students.filter(s => {
+                if(s.status === 'DRP' && filter !== 'DRP') return false; // Hide dropped unless selected
+                if(s.exams?.rut_exam === 'COMPLETED' && s.exams?.sted_exam === 'COMPLETED') return false; // Hide passed out
+                
+                const matchesStatus = filter === 'ALL' || s.status === filter;
+                const matchesSearch = s.name.toLowerCase().includes(search);
+                return matchesStatus && matchesSearch;
+            });
+
+            document.getElementById('studentsEmpty').classList.toggle('hidden', filtered.length > 0);
+
+            filtered.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800";
+                
+                let badge = s.status === 'CLD' ? 'bg-emerald-100 text-emerald-700' : 
+                           (s.status === 'PND' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700');
+                
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-semibold text-slate-800 dark:text-white">${s.name}</td>
+                    <td class="px-6 py-4"><span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs font-mono">${s.batch}</span></td>
+                    <td class="px-6 py-4"><span class="px-2 py-1 rounded text-[10px] font-bold uppercase ${badge}">${s.status}</span></td>
+                    <td class="px-6 py-4 text-right font-mono text-emerald-600">₹${s.paid}</td>
+                    <td class="px-6 py-4 text-right font-mono text-rose-600 font-bold">₹${s.due}</td>
+                    <td class="px-6 py-4 text-center">
+                        <button onclick="openDetails('${s.id}')" class="p-1.5 hover:bg-blue-50 text-blue-600 rounded transition-colors"><span class="material-symbols-rounded">edit_square</span></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- Logic: Details & Payments ---
+        function openDetails(id) {
+            currentStudentId = id;
+            const s = students.find(x => x.id === id);
+            if(!s) return;
+
+            document.getElementById('detName').innerText = s.name;
+            document.getElementById('detId').innerText = `ID: ${s.id}`;
+            document.getElementById('detBatch').innerText = s.batch;
+            document.getElementById('detStatus').value = s.status;
+            document.getElementById('detBatchSelect').value = s.batch;
+            
+            document.getElementById('detTotal').innerText = `₹${s.total}`;
+            document.getElementById('detPaid').innerText = `₹${s.paid}`;
+            document.getElementById('detDue').innerText = `₹${s.due}`;
+            
+            // Avatar
+            document.getElementById('detAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=0ea5e9&color=fff`;
+
+            // Kit Status
+            const kb = document.getElementById('kit-status-badge');
+            if(s.material_status === 'RECEIVED') {
+                kb.className = "px-3 py-1 rounded-lg text-xs font-bold bg-indigo-100 text-indigo-700";
+                kb.innerText = "Kit Received";
+            } else {
+                kb.className = "px-3 py-1 rounded-lg text-xs font-bold bg-slate-200 text-slate-600";
+                kb.innerText = "Kit Pending";
+            }
+
+            // History
+            const histDiv = document.getElementById('paymentHistoryList');
+            histDiv.innerHTML = '';
+            for(let [month, amt] of Object.entries(s.history || {})) {
+                histDiv.innerHTML += `
+                    <div class="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-800 rounded border dark:border-slate-700">
+                        <span class="text-xs font-bold text-slate-500">${month}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold dark:text-white">₹${amt}</span>
+                            <button onclick="deletePayment('${month}')" class="text-slate-300 hover:text-rose-500"><span class="material-symbols-rounded text-[16px]">delete</span></button>
+                        </div>
+                    </div>`;
+            }
+
+            // Exams
+            const exDiv = document.getElementById('examStatusGrid');
+            exDiv.innerHTML = '';
+            const exams = { rut_reg: 'Rutronix Reg', rut_exam: 'Rutronix Exam', sted_reg: 'Sted Reg', sted_exam: 'Sted Exam' };
+            for(let [key, label] of Object.entries(exams)) {
+                const status = (s.exams && s.exams[key]) || 'PENDING';
+                const isDone = status === 'COMPLETED';
+                exDiv.innerHTML += `
+                    <button onclick="toggleExam('${key}')" class="p-2 border rounded-lg text-left ${isDone ? 'bg-emerald-50 border-emerald-200' : 'hover:border-blue-400 dark:border-slate-700'}">
+                        <p class="text-[9px] uppercase font-bold text-slate-400">${label}</p>
+                        <p class="text-xs font-bold ${isDone ? 'text-emerald-600' : 'text-slate-600 dark:text-slate-300'}">${status}</p>
+                    </button>
+                `;
+            }
+
+            // Attendance Preview
+            const calDiv = document.getElementById('detAttendanceCal');
+            calDiv.innerHTML = '';
+            // Get last 14 entries for this student
+            let entries = [];
+            for(let date in attendance) {
+                if(attendance[date][id]) entries.push({date, status: attendance[date][id]});
+            }
+            entries.sort((a,b) => new Date(b.date) - new Date(a.date));
+            if(entries.length === 0) calDiv.innerHTML = '<span class="text-xs text-slate-400">No attendance records.</span>';
+            entries.slice(0, 14).forEach(e => {
+                 let color = e.status === 'P' ? 'bg-emerald-500' : (e.status === 'A' ? 'bg-rose-500' : 'bg-amber-500');
+                 calDiv.innerHTML += `<div title="${e.date}: ${e.status}" class="w-3 h-3 rounded-sm ${color}"></div>`;
+            });
+
+            document.getElementById('detailsModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('detailsModal').classList.add('active'), 10);
+        }
+
+        function addPayment() {
+            const m = document.getElementById('payMonth').value;
+            const a = Number(document.getElementById('payAmount').value);
+            if(!m || !a) return;
+            const s = students.find(x => x.id === currentStudentId);
+            if(!s.history) s.history = {};
+            
+            // Format month nicely
+            const d = new Date(m + "-01");
+            const mStr = d.toLocaleString('default', { month: 'short', year: '2-digit' });
+            
+            s.history[mStr] = (s.history[mStr] || 0) + a;
+            recalcStudent(s);
+            saveData();
+            openDetails(currentStudentId);
+        }
+
+        function deletePayment(month) {
+             const s = students.find(x => x.id === currentStudentId);
+             if(s && s.history[month]) {
+                 delete s.history[month];
+                 recalcStudent(s);
+                 saveData();
+                 openDetails(currentStudentId);
+             }
+        }
+
+        function recalcStudent(s) {
+            s.paid = Object.values(s.history).reduce((a,b) => a+b, 0);
+            s.due = s.total - s.paid;
+            if(s.due <= 0) s.status = 'CLD';
+            else if(s.status === 'CLD') s.status = 'PND';
+        }
+
+        function updateStudentMeta() {
+            const s = students.find(x => x.id === currentStudentId);
+            s.status = document.getElementById('detStatus').value;
+            s.batch = document.getElementById('detBatchSelect').value;
+            saveData();
+            renderStudentsTable(); // update background table
+            document.getElementById('detBatch').innerText = s.batch;
+        }
+
+        function toggleExam(key) {
+            const s = students.find(x => x.id === currentStudentId);
+            if(!s.exams) s.exams = {};
+            s.exams[key] = s.exams[key] === 'COMPLETED' ? 'PENDING' : 'COMPLETED';
+            saveData();
+            openDetails(currentStudentId);
+        }
+
+        function deleteStudent() {
+            if(confirm("Are you sure? This cannot be undone.")) {
+                students = students.filter(s => s.id !== currentStudentId);
+                saveData();
+                closeModal('detailsModal');
+                renderStudentsTable();
+            }
+        }
+
+        // --- Logic: Inventory ---
+        function updateMaterialsView() {
+            // Stats
+            const stockIn = inventory.batches ? inventory.batches.reduce((a,b) => a + Number(b.qty), 0) : 0;
+            const distributed = students.filter(s => s.material_status === 'RECEIVED').length;
+            const currentStock = stockIn - distributed;
+            
+            const eligibleStudents = students.filter(s => s.status !== 'DRP' && (s.paid/s.total) >= 0.33);
+            const need = eligibleStudents.filter(s => s.material_status !== 'RECEIVED').length;
+
+            document.getElementById('inv-stock').innerText = currentStock;
+            document.getElementById('inv-dist').innerText = distributed;
+            document.getElementById('inv-need').innerText = need;
+
+            document.getElementById('kpi-stock-need').innerText = need; // Update Dashboard KPI too
+
+            // History
+            const hList = document.getElementById('stockHistoryList');
+            hList.innerHTML = '';
+            (inventory.batches || []).forEach(b => {
+                hList.innerHTML += `
+                    <div class="flex justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded border dark:border-slate-700 text-sm">
+                        <div><p class="font-bold dark:text-white">${b.qty} Kits</p><p class="text-xs text-slate-500">${b.date}</p></div>
+                        <span class="text-xs text-slate-400 italic">${b.note || ''}</span>
+                    </div>`;
+            });
+
+            renderMaterialsList('PENDING'); // Default tab
+        }
+
+        function addStockBatch() {
+            const qty = document.getElementById('stockQty').value;
+            const date = document.getElementById('stockDate').value;
+            if(!qty) return;
+            if(!inventory.batches) inventory.batches = [];
+            inventory.batches.unshift({ date, qty, note: document.getElementById('stockNote').value });
+            saveData();
+            updateMaterialsView();
+            document.getElementById('stockQty').value = '';
+        }
+
+        function renderMaterialsList(mode) {
+             // Reset tabs
+             ['pending','eligible','received'].forEach(t => {
+                 document.getElementById(`tab-mat-${t}`).classList.remove('border-blue-600', 'text-blue-600');
+                 document.getElementById(`tab-mat-${t}`).classList.add('border-transparent', 'text-slate-500');
+             });
+             document.getElementById(`tab-mat-${mode.toLowerCase()}`).classList.add('border-blue-600', 'text-blue-600');
+             document.getElementById(`tab-mat-${mode.toLowerCase()}`).classList.remove('border-transparent', 'text-slate-500');
+
+             const tbody = document.getElementById('materialTableBody');
+             tbody.innerHTML = '';
+             
+             const active = students.filter(s => s.status !== 'DRP' && s.exams?.rut_exam !== 'COMPLETED');
+             let list = [];
+
+             if(mode === 'RECEIVED') {
+                 list = active.filter(s => s.material_status === 'RECEIVED');
+             } else if (mode === 'ELIGIBLE') {
+                 list = active.filter(s => s.material_status !== 'RECEIVED' && (s.paid/s.total) >= 0.33);
+             } else {
+                 list = active.filter(s => s.material_status !== 'RECEIVED' && (s.paid/s.total) < 0.33);
+             }
+
+             list.forEach(s => {
+                 const pct = Math.round((s.paid/s.total)*100);
+                 let action = '';
+                 if(mode === 'ELIGIBLE') {
+                     action = `<button onclick="markKitReceived('${s.id}')" class="px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded shadow hover:bg-blue-700">Give Kit</button>`;
+                 } else if (mode === 'RECEIVED') {
+                     action = `<span class="text-xs font-bold text-emerald-600 flex items-center justify-center gap-1"><span class="material-symbols-rounded text-[14px]">check</span> Given</span>`;
+                 } else {
+                     action = `<span class="text-xs text-slate-400 italic">Locked</span>`;
+                 }
+
+                 tbody.innerHTML += `
+                    <tr>
+                        <td class="px-6 py-3 font-semibold dark:text-white">${s.name}</td>
+                        <td class="px-6 py-3 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <span class="text-xs font-bold ${pct >= 33 ? 'text-emerald-600' : 'text-amber-600'}">${pct}%</span>
+                                <div class="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden"><div class="h-full ${pct >= 33 ? 'bg-emerald-500' : 'bg-amber-500'}" style="width:${Math.min(pct,100)}%"></div></div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-3 text-center">${action}</td>
+                    </tr>
+                 `;
+             });
+        }
+
+        function markKitReceived(id) {
+            // Check stock
+            const stockIn = inventory.batches ? inventory.batches.reduce((a,b) => a + Number(b.qty), 0) : 0;
+            const distributed = students.filter(s => s.material_status === 'RECEIVED').length;
+            if(stockIn - distributed <= 0) return alert("No stock available! Add batch first.");
+
+            const s = students.find(x => x.id === id);
+            if(s) {
+                s.material_status = 'RECEIVED';
+                saveData();
+                updateMaterialsView();
+            }
+        }
+
+        // --- Logic: Attendance ---
+        function loadAttendanceForDate() {
+            const date = document.getElementById('attendanceDate').value;
+            const day = new Date(date).getDay();
+            const isSat = day === 6;
+            
+            document.getElementById('saturday-lock').classList.toggle('hidden', !isSat);
+            document.getElementById('attendance-container').classList.toggle('hidden', isSat);
+            
+            if(isSat) return;
+
+            const tbody = document.getElementById('attendanceTableBody');
+            tbody.innerHTML = '';
+            
+            const record = attendance[date] || {};
+            const active = students.filter(s => s.status !== 'DRP' && !s.exams?.rut_exam); // Active only
+
+            let p=0, a=0;
+
+            active.forEach(s => {
+                const status = record[s.id] || ''; // Default empty
+                if(status === 'P') p++;
+                if(status === 'A') a++;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="px-6 py-3 font-medium dark:text-white">${s.name}</td>
+                        <td class="px-6 py-3 text-xs text-slate-500">${s.batch}</td>
+                        <td class="px-6 py-3 text-center">
+                            <div class="inline-flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+                                <button onclick="setAtt('${s.id}', 'P', this)" class="px-3 py-1 rounded text-xs font-bold transition-all ${status==='P' ? 'bg-emerald-500 text-white shadow' : 'text-slate-400 hover:text-emerald-600'}">P</button>
+                                <button onclick="setAtt('${s.id}', 'A', this)" class="px-3 py-1 rounded text-xs font-bold transition-all ${status==='A' ? 'bg-rose-500 text-white shadow' : 'text-slate-400 hover:text-rose-600'}">A</button>
+                                <button onclick="setAtt('${s.id}', 'L', this)" class="px-3 py-1 rounded text-xs font-bold transition-all ${status==='L' ? 'bg-amber-500 text-white shadow' : 'text-slate-400 hover:text-amber-600'}">L</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('attendance-stats').innerText = `${p} Present • ${a} Absent`;
+        }
+
+        function setAtt(sid, val, btn) {
+            // Visual toggle
+            const parent = btn.parentElement;
+            parent.querySelectorAll('button').forEach(b => b.className = "px-3 py-1 rounded text-xs font-bold transition-all text-slate-400 hover:text-slate-600");
+            
+            let color = val === 'P' ? 'bg-emerald-500' : (val === 'A' ? 'bg-rose-500' : 'bg-amber-500');
+            btn.className = `px-3 py-1 rounded text-xs font-bold transition-all text-white shadow ${color}`;
+            
+            const date = document.getElementById('attendanceDate').value;
+            if(!attendance[date]) attendance[date] = {};
+            attendance[date][sid] = val;
+        }
+
+        function saveAttendance() {
+            saveData();
+            alert("Attendance Saved!");
+            loadAttendanceForDate(); // Refresh stats
+        }
+
+        // --- Logic: Batches ---
+        function updateBatchesView() {
+             const active = students.filter(s => s.status !== 'DRP' && s.exams?.rut_exam !== 'COMPLETED');
+             const counts = { "9-11":0, "11-1":0, "2-4":0, "SUNDAY":0 };
+             active.forEach(s => { if(counts[s.batch] !== undefined) counts[s.batch]++ });
+             
+             for(let k in counts) document.getElementById('cnt-'+k).innerText = counts[k];
+             document.getElementById('batch-list-container').classList.add('hidden');
+        }
+
+        function filterBatchView(batch) {
+             const map = { "9-11":"Morning", "11-1":"Noon", "2-4":"Afternoon", "SUNDAY":"Sunday" };
+             document.getElementById('batch-list-title').innerText = `${map[batch]} Batch List`;
+             const tbody = document.getElementById('batchTableBody');
+             tbody.innerHTML = '';
+             
+             const list = students.filter(s => s.batch === batch && s.status !== 'DRP');
+             if(list.length === 0) tbody.innerHTML = '<tr><td class="p-4 text-slate-400 text-center">No students</td></tr>';
+             
+             list.forEach(s => {
+                 tbody.innerHTML += `<tr><td class="py-3 px-4 font-medium border-b dark:border-slate-800 dark:text-white">${s.name}</td><td class="py-3 px-4 text-right border-b dark:border-slate-800 text-xs text-slate-500">Due: ₹${s.due}</td></tr>`;
+             });
+             document.getElementById('batch-list-container').classList.remove('hidden');
+        }
+
+        // --- Logic: PDF ---
+        function downloadStudentPDF() {
+            const s = students.find(x => x.id === currentStudentId);
+            if(!s) return;
+
+            // Fill Template
+            document.getElementById('pdfName').innerText = s.name;
+            document.getElementById('pdfBatch').innerText = s.batch;
+            document.getElementById('pdfTotal').innerText = `₹${s.total}`;
+            document.getElementById('pdfPaid').innerText = `₹${s.paid}`;
+            document.getElementById('pdfDue').innerText = `₹${s.due}`;
+            document.getElementById('pdfDate').innerText = new Date().toLocaleDateString();
+
+            const tbody = document.getElementById('pdfHistoryBody');
+            tbody.innerHTML = '';
+            for(let [m, amt] of Object.entries(s.history || {})) {
+                tbody.innerHTML += `<tr><td class="py-1 border-b border-slate-100">${m}</td><td class="py-1 border-b border-slate-100 text-right font-bold">₹${amt}</td></tr>`;
+            }
+
+            // Generate
+            const element = document.getElementById('pdf-template');
+            element.classList.remove('hidden');
+            const opt = {
+                margin: 0,
+                filename: `${s.name}_Profile.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save().then(() => {
+                element.classList.add('hidden');
+            });
+        }
+
+        // --- Logic: Config & Cloud ---
+        function saveConfig() {
+            config.name = document.getElementById('confName').value;
+            config.rank = document.getElementById('confRank').value;
+            updateUserDisplay();
+            saveData();
+            alert("Profile updated!");
+        }
+
+        function updateUserDisplay() {
+            document.getElementById('user-name-display').innerText = config.name;
+            document.getElementById('user-rank-display').innerText = config.rank;
+            document.getElementById('user-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(config.name)}&background=0284c7&color=fff`;
+        }
+
+        function switchSettingTab(tab) {
+             document.getElementById('st-content-url').classList.toggle('hidden', tab !== 'url');
+             document.getElementById('st-content-code').classList.toggle('hidden', tab !== 'code');
+             document.getElementById('st-btn-url').className = tab==='url' ? "pb-2 text-sm font-bold border-b-2 border-blue-600 text-blue-600" : "pb-2 text-sm font-bold border-b-2 border-transparent text-slate-400";
+             document.getElementById('st-btn-code').className = tab==='code' ? "pb-2 text-sm font-bold border-b-2 border-blue-600 text-blue-600" : "pb-2 text-sm font-bold border-b-2 border-transparent text-slate-400";
+        }
+
+        async function syncData(action, silent = false) {
+            if(!config.cloudUrl) return alert("Please set Cloud URL first.");
+            
+            const dot = document.getElementById('cloud-status-dot');
+            dot.className = "w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse";
+            
+            try {
+                if(action === 'push') {
+                    const payload = {
+                        students: students,
+                        attendance: attendance,
+                        inventory: inventory // Only local for now unless script modified further, but sticking to request
+                    };
+                    await fetch(config.cloudUrl, {
+                        method: 'POST', mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if(!silent) alert("Pushed to Cloud!");
+                } else {
+                    const res = await fetch(config.cloudUrl);
+                    const data = await res.json();
+                    if(data.students) students = data.students;
+                    if(data.attendance) attendance = data.attendance;
+                    saveData();
+                    if(!silent) alert("Pulled from Cloud!");
+                }
+                dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-500";
+            } catch(e) {
+                console.error(e);
+                dot.className = "w-1.5 h-1.5 rounded-full bg-rose-500";
+                if(!silent) alert("Sync Failed");
+            }
+        }
+
+        // --- Helpers ---
+        function updateOverview() {
+            let paid = 0, due = 0, count = 0;
+            students.forEach(s => {
+                if(s.status !== 'DRP' && s.exams?.rut_exam !== 'COMPLETED') {
+                    paid += s.paid;
+                    due += s.due;
+                    count++;
+                }
+            });
+            document.getElementById('kpi-collected').innerText = `₹${paid.toLocaleString()}`;
+            document.getElementById('kpi-due').innerText = `₹${due.toLocaleString()}`;
+            document.getElementById('kpi-students').innerText = count;
+
+            // Chart
+            if(window.revChart) {
+                // Simple monthly aggregation
+                const months = {};
+                students.forEach(s => {
+                    for(let [m, amt] of Object.entries(s.history || {})) {
+                        months[m] = (months[m] || 0) + amt;
+                    }
+                });
+                const labels = Object.keys(months);
+                window.revChart.data.labels = labels;
+                window.revChart.data.datasets[0].data = Object.values(months);
+                window.revChart.update();
+            }
+
+            // Top Defaulters
+            const defDiv = document.getElementById('top-defaulters-list');
+            defDiv.innerHTML = '';
+            students
+                .filter(s => s.due > 0 && s.status !== 'DRP')
+                .sort((a,b) => b.due - a.due)
+                .slice(0, 5)
+                .forEach(s => {
+                    defDiv.innerHTML += `
+                        <div class="flex justify-between items-center p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded cursor-pointer" onclick="openDetails('${s.id}')">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">${s.name.substring(0,2)}</div>
+                                <span class="text-sm font-bold text-slate-700 dark:text-slate-300">${s.name}</span>
+                            </div>
+                            <span class="text-xs font-bold text-rose-600">₹${s.due}</span>
+                        </div>`;
+                });
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            window.revChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: [], datasets: [{ label: 'Revenue', data: [], backgroundColor: '#3b82f6', borderRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display:false} }, scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } } }
+            });
+        }
+
+        function updatePassedOutView() {
+            const tbody = document.getElementById('passedOutBody');
+            tbody.innerHTML = '';
+            const passed = students.filter(s => s.exams?.rut_exam === 'COMPLETED' && s.exams?.sted_exam === 'COMPLETED');
+            if(passed.length === 0) tbody.innerHTML = '<tr><td colspan="3" class="p-8 text-center text-slate-400">No passed out students yet.</td></tr>';
+            
+            passed.forEach(s => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="px-6 py-4 font-bold text-slate-700 dark:text-slate-300">${s.name}</td>
+                        <td class="px-6 py-4"><span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-bold">ALUMNI</span></td>
+                        <td class="px-6 py-4 text-center"><button onclick="openDetails('${s.id}')" class="text-blue-600 font-bold text-xs">View</button></td>
+                    </tr>`;
+            });
+        }
+
+        function factoryReset() {
+            if(confirm("DANGER: WIPE EVERYTHING?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            el.classList.remove('modal-enter-active');
+            setTimeout(() => el.classList.add('hidden'), 200);
+        }
+
+        function openModal(id) {
+            const el = document.getElementById(id);
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('modal-enter-active'), 10);
+        }
+
+        function toggleTheme() {
+            config.darkMode = !config.darkMode;
+            applyTheme();
+            saveData();
+        }
+
+        function applyTheme() {
+            document.documentElement.classList.toggle('dark', config.darkMode);
+            document.getElementById('theme-label').innerText = config.darkMode ? 'Dark' : 'Light';
+        }
+
+    </script>
+</body>
+</html>	` 
