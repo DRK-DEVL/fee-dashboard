@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Project report for a configurable, role-based business operations and dashboard platform.">
+  <title>Project Report | Configurable Operations Platform</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    :root { --ink:#172033; --muted:#5e6b80; --brand:#2457d6; --brand-dark:#173da2; --pale:#eef3ff; --line:#dce3ee; --surface:#f6f8fc; --green:#087f5b; --amber:#9a5b00; --red:#b42318; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:#e9edf4; font:16px/1.58 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .toolbar { position:sticky; top:0; z-index:5; display:flex; justify-content:center; padding:14px; background:rgba(255,255,255,.94); border-bottom:1px solid var(--line); backdrop-filter:blur(8px); }
+    .download { border:0; border-radius:10px; padding:12px 20px; color:white; background:var(--brand); font-size:15px; font-weight:750; cursor:pointer; box-shadow:0 5px 16px #2457d633; }
+    .download:hover { background:var(--brand-dark); }
+    .download:disabled { opacity:.65; cursor:wait; }
+    #report { width:min(940px, calc(100% - 32px)); margin:28px auto; padding:62px 70px; background:white; box-shadow:0 12px 40px #1720331a; }
+    .cover { min-height:720px; display:flex; flex-direction:column; justify-content:space-between; padding:20px 0 42px; page-break-after:always; }
+    .eyebrow { color:var(--brand); font-size:12px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+    h1 { max-width:720px; margin:18px 0; font-size:48px; line-height:1.08; letter-spacing:-.04em; }
+    h2 { margin:48px 0 16px; padding-bottom:10px; border-bottom:2px solid var(--line); color:#1c3572; font-size:25px; line-height:1.25; page-break-after:avoid; }
+    h3 { margin:25px 0 8px; color:#253e77; font-size:18px; page-break-after:avoid; }
+    p { margin:8px 0 14px; }
+    .subtitle { max-width:690px; color:var(--muted); font-size:20px; }
+    .cover-card { margin-top:45px; padding:24px; border-left:5px solid var(--brand); border-radius:5px 14px 14px 5px; background:var(--pale); }
+    .meta { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:30px; color:var(--muted); font-size:13px; }
+    .meta div { padding:12px 14px; border:1px solid var(--line); border-radius:9px; }
+    .meta strong { display:block; color:var(--ink); }
+    .callout { margin:18px 0; padding:16px 18px; border:1px solid #cbd9ff; border-radius:10px; background:#f4f7ff; }
+    .callout strong { color:#1c438f; }
+    .note { border-color:#f1d59a; background:#fff9e9; }
+    .note strong { color:var(--amber); }
+    .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:16px 0; }
+    .card { padding:17px; border:1px solid var(--line); border-radius:11px; background:#fff; break-inside:avoid; }
+    .card h3 { margin:0 0 7px; }
+    ul,ol { padding-left:23px; }
+    li { margin:5px 0; }
+    table { width:100%; margin:15px 0 22px; border-collapse:collapse; font-size:14px; break-inside:auto; }
+    th,td { padding:10px 11px; border:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:#243c77; background:#f0f4fb; }
+    tr { break-inside:avoid; }
+    .diagram { margin:20px 0; padding:20px; border:1px solid var(--line); border-radius:12px; background:var(--surface); text-align:center; }
+    .flow { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:9px; }
+    .flow span { padding:10px 13px; border:1px solid #cbd6e8; border-radius:8px; background:white; font-size:13px; font-weight:700; }
+    .arrow { color:var(--brand); font-weight:900; }
+    .small { color:var(--muted); font-size:13px; }
+    .tag { display:inline-block; margin:3px 4px 3px 0; padding:4px 9px; border-radius:999px; color:#26478b; background:#edf2ff; font-size:12px; font-weight:700; }
+    .status { color:var(--green); font-weight:800; }
+    .footer { margin-top:50px; padding-top:14px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
+    .toc li { margin:8px 0; }
+    @media(max-width:650px) { #report { padding:32px 24px; } h1 {font-size:37px;} .grid,.meta {grid-template-columns:1fr;} .cover {min-height:620px;} }
+    @media print {
+      body { background:#fff; }
+      .toolbar { display:none !important; }
+      #report { width:100%; margin:0; padding:18mm 17mm; box-shadow:none; }
+      h2 { page-break-after:avoid; }
+      .card,.callout,.diagram { break-inside:avoid; }
+      a { color:inherit; text-decoration:none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar"><button class="download" id="downloadBtn" type="button">Download project report as PDF</button></div>
+  <main id="report">
+    <section class="cover">
+      <div>
+        <div class="eyebrow">Product concept and delivery plan</div>
+        <h1>Configurable Business Operations &amp; Dashboard Platform</h1>
+        <p class="subtitle">A managed, role-based software framework configured by an authorized implementation team to fit each customer’s organization, workflows, data policies, and deployment environment.</p>
+        <div class="cover-card"><strong>Vision</strong><br>Turn the way an organization works into a tailored digital system: collect operational data, apply its rules, and deliver the right workflows, reports, and visual insights to the right people.</div>
+        <div style="margin-top:24px"><span class="tag">Role-based</span><span class="tag">Configurable</span><span class="tag">Offline-capable</span><span class="tag">Deployment-flexible</span><span class="tag">White-label option</span></div>
+      </div>
+      <div>
+        <div class="meta">
+          <div><strong>Prepared for</strong>Product founder and implementation team</div>
+          <div><strong>Initial reference product</strong>Fee Dashboard / Institute Administration</div>
+          <div><strong>Document status</strong>Concept report — requires discovery and validation</div>
+          <div><strong>Prepared</strong>21 November 2026</div>
+        </div>
+        <p class="small" style="margin-top:22px">This report captures the product direction discussed so far. It is a planning document, not a technical security certification, legal opinion, or revenue forecast.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Executive summary</h2>
+      <p>The proposed product is not a single-purpose fee tracker or a generic charting tool. It is a shared software framework plus a managed configuration and deployment service. The provider’s authorized staff studies each customer’s organization, then configures a tailored software workspace using reusable platform capabilities.</p>
+      <p>The system should support different company sizes, workforces, role hierarchies, data sensitivity levels, connectivity needs, storage choices, and branding requirements. Authorized customer staff enter operational data; permitted users review, approve, and manage it; dashboards and reports transform it into useful information. Automation and AI may later assist with configuration, analysis, and recommendations, with human oversight for consequential decisions.</p>
+      <div class="callout"><strong>Recommended strategy:</strong> use the existing institute dashboard as the first vertical template and product-validation case. Build reusable capabilities from real customer needs rather than trying to support every industry at launch.</div>
+      <h3>Product at a glance</h3>
+      <ul>
+        <li><b>Provider-operated configuration:</b> only authorized employees of the software company create and configure customer systems.</li>
+        <li><b>Customer-specific system:</b> each workspace reflects that customer’s roles, data, calculations, approvals, and dashboards.</li>
+        <li><b>Multiple deployment profiles:</b> hosted online, dedicated cloud, private/on-premises, and carefully designed offline or hybrid operation.</li>
+        <li><b>Flexible storage:</b> choose an appropriate data connector for the customer’s requirements; spreadsheets are a limited integration option, not a universal secure database.</li>
+        <li><b>Commercial tiers:</b> charge for setup and customization, ongoing hosting/support, infrastructure, and optional white-label branding.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Contents</h2>
+      <ol class="toc">
+        <li>Vision, problem, and value proposition</li><li>Customers and use cases</li><li>Roles and access model</li><li>Product architecture</li><li>Configuration and implementation lifecycle</li><li>Deployment and data-storage profiles</li><li>Security, privacy, and offline synchronization</li><li>AI, automation, and visualization</li><li>Commercial model and positioning</li><li>Delivery roadmap and MVP</li><li>Risks, assumptions, and mitigations</li><li>Success measures and decisions to validate</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>1. Vision, problem, and value proposition</h2>
+      <h3>Vision</h3>
+      <p>Enable organizations to operate through a purpose-built digital system that reflects how their people work, while using a consistent, maintainable software foundation.</p>
+      <h3>Problem to solve</h3>
+      <p>Many organizations rely on scattered spreadsheets, paper processes, disconnected applications, or dashboards that show numbers without supporting the underlying workflow. Off-the-shelf systems can be too rigid, too broad, difficult to deploy in sensitive environments, or poorly matched to local processes.</p>
+      <h3>Proposed value</h3>
+      <div class="grid">
+        <div class="card"><h3>Fit the organization</h3><p>Model its structure, terminology, records, approvals, and reporting needs rather than imposing a fixed workflow.</p></div>
+        <div class="card"><h3>One operational picture</h3><p>Bring data entry, calculations, reporting, and action workflows together with role-appropriate views.</p></div>
+        <div class="card"><h3>Deployment choice</h3><p>Match hosting and storage to connectivity, scale, customer IT capabilities, and data sensitivity.</p></div>
+        <div class="card"><h3>Managed delivery</h3><p>Provide discovery, configuration, deployment, onboarding, support, and continuous improvement as a service.</p></div>
+      </div>
+      <div class="callout note"><strong>Expectation setting:</strong> “works for any industry” is a long-term platform ambition, not an initial scope. The credible path is to prove repeatability in one vertical, then expand through reusable templates and validated demand.</div>
+    </section>
+
+    <section>
+      <h2>2. Customers and use cases</h2>
+      <h3>Initial reference segment</h3>
+      <p>Training institutes and education providers are the first reference segment, based on the existing dashboard. Its current concepts—students, fees, attendance, batches, inventory, and reports—can test core platform ideas such as configurable records, roles, calculations, and dashboards.</p>
+      <h3>Potential future segments</h3>
+      <p>Small and mid-sized organizations with recurring operational reporting needs may be considered after validation: service providers, clinics, logistics teams, manufacturing operations, nonprofits, and multi-branch businesses. Each segment requires its own discovery, regulatory review, and customer proof.</p>
+      <h3>Customer outcomes to validate</h3>
+      <ul><li>Less duplicate entry and fewer manual reporting steps.</li><li>More reliable, timely operational information.</li><li>Clear ownership and approval of important work.</li><li>Useful dashboards for each relevant role.</li><li>Deployment and data-handling choices that match customer constraints.</li></ul>
+    </section>
+
+    <section>
+      <h2>3. Roles and access model</h2>
+      <p>Access is configured for each customer. A “level 0” data-entry role can be a useful example, but the platform should not hard-code that label or assume that seniority alone determines permissions. Job title, reporting line, and data access are related but distinct.</p>
+      <table><thead><tr><th>Example role</th><th>Typical responsibilities</th><th>Example access boundary</th></tr></thead><tbody>
+        <tr><td>Frontline contributor</td><td>Enter or update assigned operational records</td><td>Own records and permitted team data only</td></tr>
+        <tr><td>Team lead / reviewer</td><td>Check submissions, resolve exceptions, approve within scope</td><td>Team-level records and approval actions</td></tr>
+        <tr><td>Department manager</td><td>Manage staff workflows and review department performance</td><td>Department-wide metrics and authorized records</td></tr>
+        <tr><td>Executive / owner</td><td>Review organization-wide performance and strategic indicators</td><td>Aggregated views; sensitive details only where justified</td></tr>
+        <tr><td>Customer system administrator</td><td>Manage customer users and operational settings if enabled</td><td>Only the delegated administration capabilities provided</td></tr>
+        <tr><td>Provider implementation staff</td><td>Configure and maintain the customer deployment</td><td>Restricted, approved, logged support access; no automatic blanket access to all business data</td></tr>
+      </tbody></table>
+      <h3>Permission dimensions</h3>
+      <p>Authorization should be explicit and testable, combining role and scope where appropriate: view, create, edit, delete, export, approve, administer, and access sensitive fields. Scope can be limited by organization, branch, department, team, assigned records, or data classification. Default to least privilege and deny access unless permitted.</p>
+      <div class="callout"><strong>Important boundary:</strong> provider staff may be the only people who configure the product, while customer administrators may still need limited day-to-day user management. These are separate permissions and must be decided per customer.</div>
+    </section>
+
+    <section>
+      <h2>4. Product architecture</h2>
+      <p>Use a shared, modular platform with customer-specific configuration. A customer configuration should describe the business model and UI without requiring a forked codebase for every deployment.</p>
+      <div class="diagram"><div class="flow"><span>Customer discovery</span><b class="arrow">→</b><span>Versioned configuration</span><b class="arrow">→</b><span>Platform runtime</span><b class="arrow">→</b><span>Customer deployment</span></div><p class="small">Common platform components; isolated customer data and customer-specific behavior according to the selected deployment profile.</p></div>
+      <table><thead><tr><th>Layer</th><th>Responsibilities</th></tr></thead><tbody>
+        <tr><td>Configuration studio (internal)</td><td>Customer profiles, organization structure, roles, entities, fields, forms, workflows, metrics, dashboards, branding, connectors, and deployment settings. Access restricted to authorized provider personnel.</td></tr>
+        <tr><td>Identity and authorization</td><td>User identity, organization/tenant boundaries, authentication, sessions, role and scope policy, and auditable access decisions.</td></tr>
+        <tr><td>Data model and validation</td><td>Configurable entities and fields, required formats, relationships, validation, retention labels, and controlled schema changes.</td></tr>
+        <tr><td>Workflow and rules</td><td>Approvals, status transitions, scheduled tasks, alerts, calculations, and business rules with versioning and traceable outcomes.</td></tr>
+        <tr><td>Visualization and reporting</td><td>Role-filtered charts, tables, maps where appropriate, exports, scheduled reports, and accessibility-friendly alternatives.</td></tr>
+        <tr><td>Storage and integration adapters</td><td>Supported database and external-service connectors behind a documented interface, with tested limits and failure handling.</td></tr>
+        <tr><td>Deployment and operations</td><td>Hosted, dedicated, private, on-premises, or offline-capable installation profiles; monitoring, backups, updates, and support processes.</td></tr>
+      </tbody></table>
+      <h3>Configuration as a product asset</h3>
+      <p>Each customer’s configuration should be version-controlled, reviewed, backed up, and promoted through test and production environments. It should be possible to compare versions, roll back a deployment, and understand which configuration produced a report or workflow result.</p>
+      <h3>Suggested conceptual objects</h3>
+      <p><span class="tag">Organization</span><span class="tag">User</span><span class="tag">Role</span><span class="tag">Permission policy</span><span class="tag">Entity</span><span class="tag">Field</span><span class="tag">Record</span><span class="tag">Workflow</span><span class="tag">Metric</span><span class="tag">Dashboard</span><span class="tag">Integration</span><span class="tag">Audit event</span><span class="tag">Deployment profile</span></p>
+    </section>
+
+    <section>
+      <h2>5. Configuration and implementation lifecycle</h2>
+      <ol>
+        <li><b>Qualify and scope:</b> identify business problem, decision-makers, systems in use, success criteria, budget, timeline, and implementation owner.</li>
+        <li><b>Discover:</b> map company size, branches, workforce, roles, reporting lines, current workflows, information flows, exceptions, and manual work.</li>
+        <li><b>Classify information:</b> identify personal, financial, operational, confidential, and regulated data; retention and access needs; and applicable contractual or legal requirements.</li>
+        <li><b>Design the customer blueprint:</b> document entities, fields, validation, permissions, approvals, calculations, dashboards, exports, integrations, and acceptance criteria.</li>
+        <li><b>Select deployment profile:</b> determine hosting, storage, offline requirements, backup/recovery objectives, identity integration, and support expectations.</li>
+        <li><b>Configure and prototype:</b> build using approved reusable components; validate with representative roles and realistic sample data.</li>
+        <li><b>Test and approve:</b> test permissions, data validation, calculations, workflow, accessibility, backup/restore, offline conflict handling if applicable, and customer acceptance.</li>
+        <li><b>Deploy and train:</b> onboard users, provide operating documentation, train customer contacts, and confirm support and incident channels.</li>
+        <li><b>Operate and improve:</b> monitor service, review issues and usage, manage changes through versioning, and periodically revisit access and retention.</li>
+      </ol>
+      <div class="callout"><strong>Deliverable for each engagement:</strong> a signed requirements and data-handling blueprint, approved prototype, configuration version, test/acceptance record, deployment runbook, training materials, and support agreement.</div>
+    </section>
+
+    <section>
+      <h2>6. Deployment and data-storage profiles</h2>
+      <p>Deployment should be selected from customer requirements—not company size alone. Size affects scale and operations; sensitivity, regulation, connectivity, customer IT capability, and recovery requirements also matter.</p>
+      <table><thead><tr><th>Profile</th><th>Possible fit</th><th>Considerations</th></tr></thead><tbody>
+        <tr><td>Managed shared hosting</td><td>Smaller customers with standard sensitivity and reliable connectivity</td><td>Strong tenant isolation, clear data residency, backup/restore, controlled support access, and contractual service boundaries.</td></tr>
+        <tr><td>Dedicated managed environment</td><td>Customers needing isolation or tailored capacity</td><td>Higher operating cost; define patching, monitoring, keys, incident responsibilities, and recovery tests.</td></tr>
+        <tr><td>Customer private cloud / on-premises</td><td>Customers with strict infrastructure or governance needs</td><td>Requires deployment automation, compatibility support, upgrade process, observability, and clear shared responsibility.</td></tr>
+        <tr><td>Offline-first / hybrid</td><td>Teams with intermittent connectivity or field operations</td><td>Local data protection, device controls, sync design, conflict resolution, expiry/revocation, and audit continuity.</td></tr>
+        <tr><td>Spreadsheet connector</td><td>Low-risk, limited-volume workflows or import/export and simple integrations</td><td>Not a blanket solution for sensitive, regulated, concurrent, or high-volume transactional data; define access and reliability limits.</td></tr>
+      </tbody></table>
+      <h3>Storage strategy</h3>
+      <ul><li>Keep the application’s data-access interface separate from business rules and visualization code.</li><li>Specify which databases/connectors are officially supported and test them; “save anywhere” should be a roadmap goal, not an unbounded promise.</li><li>Make migrations, export, backup, restore, deletion, and data portability part of the design.</li><li>Do not describe a platform as “high security” solely because it uses a private server. Security depends on configuration, operations, people, and verified controls.</li></ul>
+    </section>
+
+    <section>
+      <h2>7. Security, privacy, and offline synchronization</h2>
+      <p>Because customer deployments may handle sensitive information, security and privacy are core product requirements. Actual controls and legal obligations must be verified for each customer, jurisdiction, and deployment.</p>
+      <h3>Baseline control areas</h3>
+      <ul><li><b>Identity:</b> strong authentication, secure account recovery, optional multifactor authentication, session controls, and prompt deprovisioning.</li><li><b>Authorization:</b> least privilege, tenant isolation, role/scope checks enforced by the trusted service, and tests for cross-customer access.</li><li><b>Data protection:</b> encrypted transport, protected storage and backups, managed secrets/keys, and minimized sensitive data collection.</li><li><b>Accountability:</b> append-only or tamper-evident audit records for access, exports, configuration changes, approvals, and administrative actions.</li><li><b>Operations:</b> dependency updates, vulnerability handling, monitoring, incident response, backup restoration tests, and documented staff access.</li><li><b>Privacy:</b> purpose limitation, data minimization, retention/deletion rules, export capability, and customer-defined data ownership and support boundaries.</li></ul>
+      <h3>Offline and synchronization</h3>
+      <p>Offline mode is not just local storage. A credible design needs explicit decisions about which data is cached, who can use the device, how local data is protected, how long it remains available, and what occurs when a user’s access is revoked. Sync must handle duplicate edits, concurrent updates, stale permissions, connectivity loss, and audit continuity.</p>
+      <div class="callout note"><strong>Implementation warning:</strong> browser LocalStorage and a Google Sheet can support a prototype or limited workflow, but should not be presented as secure multi-user infrastructure. Offline storage should be protected and minimized; high-sensitivity deployments need a separately reviewed design and operational controls.</div>
+    </section>
+
+    <section>
+      <h2>8. AI, automation, and visualization</h2>
+      <h3>Automation first</h3>
+      <p>Start with deterministic, explainable rules: calculate an overdue balance, route a submission for review, notify an authorized person, or generate a scheduled report. Log the input, rule/configuration version, result, and any human approval so behavior can be investigated.</p>
+      <h3>AI opportunities (later, optional)</h3>
+      <ul><li>Help provider staff draft a configuration from structured discovery notes.</li><li>Suggest relevant KPIs, chart types, validation rules, or workflow gaps for human review.</li><li>Summarize trends and explain changes using permission-filtered data.</li><li>Flag anomalies for investigation—not make consequential employment, financial, or eligibility decisions without appropriate human review.</li></ul>
+      <p>AI features require customer consent and data-governance decisions. Define whether customer data may be sent to a model provider, how it is retained, whether it is used for training, and what alternative exists when AI is disabled.</p>
+      <h3>Visualization</h3>
+      <p>Support charts, tables, and maps when they answer a real operational question and the underlying data is suitable. Every visualization should respect permissions, show units and time ranges, communicate uncertainty, work on small screens, and provide an accessible text/table alternative. Animation should be optional, restrained, and never obscure values or imply causation.</p>
+    </section>
+
+    <section>
+      <h2>9. Commercial model and positioning</h2>
+      <h3>Revenue components to test</h3>
+      <table><thead><tr><th>Component</th><th>What it covers</th><th>Commercial rationale</th></tr></thead><tbody>
+        <tr><td>Discovery and implementation fee</td><td>Process mapping, configuration, migration, testing, training, and launch</td><td>Prices the skilled setup work rather than hiding bespoke effort in a low subscription.</td></tr>
+        <tr><td>Recurring platform/support subscription</td><td>Software use, updates, support tier, and standard operations</td><td>Funds continuous maintenance and creates predictable recurring revenue.</td></tr>
+        <tr><td>Infrastructure charge</td><td>Dedicated hosting, private environments, storage, or higher service levels</td><td>Reflects actual operating and support costs.</td></tr>
+        <tr><td>Premium white-label option</td><td>Customer logo, colors, domain, and agreed removal or reduction of provider branding</td><td>Supports a premium tier; specify support and rebranding boundaries.</td></tr>
+        <tr><td>Optional modules/integrations</td><td>Payment, messaging, identity, data migration, or advanced analytics connectors</td><td>Allows customers to pay for capabilities they use.</td></tr>
+      </tbody></table>
+      <p>Avoid promising a valuation or “million-dollar software” outcome as an expected result. The business opportunity depends on a repeatable implementation process, customer willingness to pay, retention, support cost, and a growing share of reusable configuration rather than custom code.</p>
+      <h3>Positioning statement</h3>
+      <div class="cover-card"><b>We map how your organization works, configure a role-based operations system for your teams, and deploy it in an environment suited to your data and connectivity needs—with optional customer branding.</b></div>
+    </section>
+
+    <section>
+      <h2>10. Delivery roadmap and MVP</h2>
+      <table><thead><tr><th>Phase</th><th>Goal</th><th>Indicative deliverables</th><th>Exit evidence</th></tr></thead><tbody>
+        <tr><td>0. Validate</td><td>Prove a repeated customer problem and implementation fit</td><td>Interviews, workflow map, target segment, pricing tests, prototype feedback</td><td>Customers confirm pain, workflow, decision-maker, and willingness to pilot/pay.</td></tr>
+        <tr><td>1. Stabilize first template</td><td>Make the institute dashboard a dependable single-organization product</td><td>Clear data model, safe input validation, export/backup, usability fixes, documented limitations</td><td>Real users complete core tasks; data can be backed up and restored; key calculations tested.</td></tr>
+        <tr><td>2. Establish secure core</td><td>Move beyond browser-local prototype</td><td>Authentication, authorization, server-side data, tenant boundary, audit, configuration separation</td><td>Security and permission tests pass; no customer can access another customer’s data.</td></tr>
+        <tr><td>3. Internal configuration studio</td><td>Let authorized provider staff build repeatable customer setups</td><td>Versioned config, entity/field designer, role policies, forms, workflows, dashboards, staging and rollback</td><td>A second customer can be configured mostly by settings, without copying the codebase.</td></tr>
+        <tr><td>4. Deployment profiles</td><td>Support suitable hosted and dedicated environments</td><td>Automated deployment, migration, monitoring, backup/restore, data connector contracts</td><td>Repeatable installation and tested recovery for agreed supported profiles.</td></tr>
+        <tr><td>5. Offline and integrations</td><td>Support defined intermittent-connectivity workflows</td><td>Local protected cache, queue, sync, conflict resolution, connector health/status</td><td>Offline scenarios and access-revocation behavior tested end-to-end.</td></tr>
+        <tr><td>6. Expand and optimize</td><td>Grow templates based on market evidence</td><td>White-label controls, additional vertical templates, carefully scoped AI assistance</td><td>Retention, recurring margin, implementation reuse, and customer outcomes justify investment.</td></tr>
+      </tbody></table>
+      <h3>Recommended first MVP boundary</h3>
+      <ul><li>One vertical (training institute), one organization per deployment or a clearly isolated initial tenant model.</li><li>Three to five real roles, with explicit record and action permissions.</li><li>Configurable fields and forms for the most valuable records, plus tested calculations and dashboards.</li><li>Internal-only configuration by provider staff; no customer self-service builder in the initial release.</li><li>One supported hosted database path first; add spreadsheet integration for suitable low-risk use cases.</li><li>Responsive web experience and a documented backup/export process. Do not promise high-security offline use until designed and tested.</li></ul>
+    </section>
+
+    <section>
+      <h2>11. Current starting point</h2>
+      <p>The existing <b>DRK-DEVL/fee-dashboard</b> repository is a single-page HTML and JavaScript prototype aimed at training institutes. It includes student profiles, fee history, attendance, inventory, batch views, analytics, PDF reports, browser LocalStorage, and optional Google Apps Script/Google Sheets synchronization.</p>
+      <h3>What is useful</h3>
+      <ul><li>Demonstrates a cohesive operational dashboard and concrete institute workflows.</li><li>Provides a first domain template and a basis for observing user needs.</li><li>Can help gather feedback before investing in a larger backend and configuration framework.</li></ul>
+      <h3>What it does not yet provide</h3>
+      <ul><li>Production multi-user authentication, role-based authorization, or tenant isolation.</li><li>A generic configurable entity, workflow, or dashboard engine.</li><li>Central server-side storage, production-grade audit, or deployment automation.</li><li>Guaranteed secure offline synchronization or high-sensitivity data controls.</li></ul>
+      <div class="callout"><strong>Transition principle:</strong> keep the prototype as a reference and test bed. Do not simply rename it a universal platform; extract and redesign reusable components deliberately, with migration and data protection in mind.</div>
+    </section>
+
+    <section>
+      <h2>12. Risks, assumptions, and mitigations</h2>
+      <table><thead><tr><th>Risk / assumption</th><th>Why it matters</th><th>Mitigation / validation</th></tr></thead><tbody>
+        <tr><td>Scope expands to every industry immediately</td><td>Builds a broad, expensive product without a repeatable customer use case</td><td>Choose one segment; add another only when discovery shows reusable needs and paid demand.</td></tr>
+        <tr><td>Every customer becomes a custom code fork</td><td>Maintenance and upgrades become unprofitable</td><td>Use versioned configuration, reusable modules, clear extension boundaries, and track custom-code percentage.</td></tr>
+        <tr><td>Data permissions are too coarse</td><td>Sensitive records can be exposed across roles or customers</td><td>Least privilege, data-scope policies, server-side enforcement, automated authorization tests, and audit.</td></tr>
+        <tr><td>“Store anywhere” is treated as an unlimited guarantee</td><td>Connectors have different security, availability, consistency, and support properties</td><td>Publish a bounded supported matrix; certify connectors through testing and contracts.</td></tr>
+        <tr><td>Offline mode creates conflicting or exposed copies</td><td>Users may lose changes or retain data after access should end</td><td>Define sync/conflict and revocation behavior; minimize cached data; test lost-device and stale-session scenarios.</td></tr>
+        <tr><td>AI is applied before data quality and permissions are solved</td><td>Incorrect or unauthorized outputs damage trust</td><td>Start with deterministic rules; permission-filter all AI inputs; human-review sensitive actions; provide opt-out.</td></tr>
+        <tr><td>High-security claims exceed verified controls</td><td>Creates legal, reputation, and customer risk</td><td>Use precise claims; perform threat modeling and independent review; document shared responsibility and evidence.</td></tr>
+        <tr><td>Implementation effort overwhelms subscription revenue</td><td>Service work may not scale into a sustainable software business</td><td>Measure deployment hours, reuse, support tickets, gross margin, and retention; price setup separately.</td></tr>
+      </tbody></table>
+    </section>
+
+    <section>
+      <h2>13. Success measures</h2>
+      <p>Measure both customer outcomes and whether the delivery model becomes repeatable.</p>
+      <div class="grid">
+        <div class="card"><h3>Customer value</h3><ul><li>Time saved on recurring reporting</li><li>Reduction in duplicate entry and correction rates</li><li>Workflow completion and approval time</li><li>Active adoption by intended roles</li><li>Customer satisfaction and renewal</li></ul></div>
+        <div class="card"><h3>Product and delivery health</h3><ul><li>Time and labor hours to configure a deployment</li><li>Share of setup completed without custom code</li><li>Production incidents and recovery test results</li><li>Permission test coverage and audit completeness</li><li>Support cost and gross margin per customer</li></ul></div>
+      </div>
+      <p class="small">Set baseline and target values with pilot customers rather than inventing performance promises before there is evidence.</p>
+    </section>
+
+    <section>
+      <h2>14. Decisions to validate next</h2>
+      <ol>
+        <li>Which first customer type and operational problem is the top priority?</li>
+        <li>Who buys, who configures, who administers users, and who supports the system after launch?</li>
+        <li>Which three to five roles and workflows must the first institute deployment support?</li>
+        <li>What is the first officially supported hosting and database profile?</li>
+        <li>Which data must work offline, on which device types, and for how long?</li>
+        <li>What customer data can implementation staff access, under what approval and audit process?</li>
+        <li>What specific white-label features are premium, and how are domains, support, and branding handled?</li>
+        <li>What are measurable pilot success criteria, setup pricing, and recurring service pricing?</li>
+      </ol>
+      <div class="callout"><strong>Immediate next action:</strong> run structured discovery with a small number of institute customers, document one complete role/workflow/data blueprint, and use it to define the first secure, reusable MVP before adding broader industry claims.</div>
+    </section>
+
+    <section>
+      <h2>Conclusion</h2>
+      <p>The opportunity is to build a repeatable, managed platform for tailored business operations—not to promise a different bespoke application for every possible industry. The differentiator can be the combination of deep customer discovery, role-aware workflows, configurable dashboards, suitable deployment choices, and a reliable implementation service.</p>
+      <p>The current fee dashboard is a valuable starting proof of the user experience and first industry template. The next stage is to validate the customer problem, then evolve it toward a secure shared core, an internal configuration process, and a limited set of supported deployment profiles. Commercial success will depend on customer outcomes, recurring retention, and reducing the effort required to deliver each new system.</p>
+      <div class="footer">Project concept report • Configurable Business Operations &amp; Dashboard Platform • Prepared 21 November 2026 • Planning document; requirements, technical design, legal obligations, and security controls must be validated before production use.</div>
+    </section>
+  </main>
+  <script>
+    const button = document.getElementById('downloadBtn');
+    button.addEventListener('click', async () => {
+      if (typeof html2pdf === 'undefined') {
+        window.print();
+        return;
+      }
+      button.disabled = true;
+      button.textContent = 'Preparing PDF…';
+      try {
+        await html2pdf().set({
+          margin: [10, 10, 12, 10],
+          filename: 'configurable-business-operations-platform-project-report.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['css', 'legacy'], avoid: ['.card', '.callout', '.diagram'] }
+        }).from(document.getElementById('report')).save();
+      } catch (error) {
+        console.error('PDF generation failed:', error);
+        alert('PDF download could not be generated. The print dialog will open so you can choose “Save as PDF.”');
+        window.print();
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Download project report as PDF';
+      }
+    });
+  </script>
+</body>
+</html>
